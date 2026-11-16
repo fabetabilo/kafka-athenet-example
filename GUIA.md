@@ -172,3 +172,38 @@ docker compose exec kafka kafka-consumer-groups --bootstrap-server localhost:909
 **En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md#escalamiento).
 
 **Athenet:** con varias instancias de `ms-statistics` (por ejemplo, varias EC2), cada una recibiría solo algunas particiones. Un navegador conectado por STOMP a una instancia no vería los partidos leídos por otra. Para escalar horizontalmente habría que separar la lectura de Kafka del envío por WebSocket.
+
+## Fase 7: consumer lag
+
+```bash
+docker compose up -d --build
+```
+
+**Probar**
+
+1. Inicia un partido en http://localhost:5000 y deja http://localhost:5173 abierto.
+2. Revisa el lag:
+
+```bash
+docker compose exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group estadisticas
+```
+
+3. Detén el consumidor: `docker compose stop ms-statistics`.
+4. Haz 5 clics en el panel del delegado y repite el comando del paso 2.
+5. Levántalo: `docker compose start ms-statistics`. Repite el comando.
+
+**Qué mirar**
+
+| Momento | LAG de la partición del partido | web-public |
+|---|---|---|
+| Consumidor arriba | 0 | Al día |
+| Consumidor detenido, después de 5 clics | 5; `CURRENT-OFFSET` no se mueve | "Desconectado", con el marcador congelado |
+| Consumidor de nuevo arriba | Vuelve a 0 | Se reconecta y muestra el marcador actual |
+
+- Mientras el consumidor está detenido, `ms-competitions` sigue publicando sin errores. Kafka guarda los mensajes y el productor no depende del consumidor.
+- Al volver, el log muestra los 5 `[LEE]` pendientes seguidos.
+- En Kafka UI → Consumers → `estadisticas` se ve el mismo lag. `auditoria` también acumula, porque vive en el mismo servicio.
+
+**En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md#consumer-lag) y [web-public/GUIA.md](web-public/GUIA.md).
+
+**Athenet:** si `ms-statistics` se cae en pleno partido, el delegado puede seguir anotando puntos y no se pierde ninguno. El marcador público se atrasa, y al volver el servicio se pone al día solo. En producción, el lag es la métrica que avisa de ese atraso.

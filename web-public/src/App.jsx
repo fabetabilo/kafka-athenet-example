@@ -10,17 +10,16 @@ function App() {
   const [conectado, setConectado] = useState(false)
 
   useEffect(() => {
-    // estado actual al cargar: el websocket solo trae los cambios
-    fetch(`${URL_STATISTICS}/marcador/actual`)
-      .then((respuesta) => (respuesta.status === 200 ? respuesta.json() : null))
-      .then(setMarcador)
-
     const cliente = new Client({
       brokerURL: URL_WEBSOCKET,
       onConnect: () => {
         setConectado(true)
         // cada evento que ms-statistics lee de Kafka llega por este canal
         cliente.subscribe('/topic/marcador', (mensaje) => setMarcador(JSON.parse(mensaje.body)))
+        // estado actual al conectar o reconectar: por STOMP solo llegan los cambios
+        fetch(`${URL_STATISTICS}/marcador/actual`)
+          .then((respuesta) => (respuesta.status === 200 ? respuesta.json() : null))
+          .then(setMarcador)
       },
       onWebSocketClose: () => setConectado(false),
     })

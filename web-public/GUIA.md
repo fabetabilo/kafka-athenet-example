@@ -2,12 +2,12 @@
 
 Este componente no usa Kafka. Recibe por STOMP lo que `ms-statistics` leyó de Kafka.
 
-## Estado inicial y cambios
+## Conexión, estado y cambios
 
-- [`App.jsx` L14](src/App.jsx#L14): al cargar, pide el partido en curso a `ms-statistics`, que lo lee desde MongoDB. Sin esto, al recargar la página el marcador quedaría vacío hasta el próximo clic.
-- [L19](src/App.jsx#L19): se conecta por WebSocket a `ws://localhost:8082/ws`.
-- [L23](src/App.jsx#L23): se suscribe a `/topic/marcador`. Cada mensaje trae el marcador completo y reemplaza el anterior.
-- [L38](src/App.jsx#L38): `FINALIZADO` cambia la etiqueta de "En vivo" a "Finalizado".
+- [`App.jsx` L14](src/App.jsx#L14): se conecta por WebSocket a `ws://localhost:8082/ws`. Si la conexión se cae, `@stomp/stompjs` reintenta solo.
+- [L18](src/App.jsx#L18): se suscribe a `/topic/marcador`. Cada mensaje trae el marcador completo y reemplaza el anterior.
+- [L20](src/App.jsx#L20): en cada conexión o reconexión pide el partido en curso a `ms-statistics`, que lo lee desde MongoDB. Por STOMP solo llegan los cambios, así que sin esto la página quedaría vacía al recargar y desactualizada al reconectar (fase 7).
+- [L37](src/App.jsx#L37): `FINALIZADO` cambia la etiqueta de "En vivo" a "Finalizado".
 
 ## URLs
 

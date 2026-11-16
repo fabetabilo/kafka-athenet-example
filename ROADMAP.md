@@ -115,10 +115,10 @@ Todo se levanta con un solo `docker-compose.yml`.
 
 ### Fase 7: consumer lag
 
-- **Construye:** solo la sección de `GUIA.md`.
+- **Construye:** la sección de `GUIA.md`. `web-public` recupera el marcador al reconectarse.
 - **Conceptos:** `lag = log-end-offset − current-offset`; consumidor caído.
 - **Se observa:** con `ms-statistics` detenido en pleno partido, los clics suben el lag en Kafka UI y `web-public` se congela. Al levantarlo, se pone al día.
-- **Commit:** `docs(guia): observar consumer lag`
+- **Commit:** `feat(web-public): recuperar marcador al reconectar y guia de consumer lag`
 
 ### Fase 8: retención
 

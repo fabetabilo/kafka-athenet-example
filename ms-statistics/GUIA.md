@@ -52,3 +52,9 @@ Por esto, en la fase 6 se escala con hilos dentro de una instancia y no con vari
 
 - [`AuditListener.java` L17](src/main/java/cl/athenet/statistics/consumer/AuditListener.java#L17): otro grupo, `auditoria`, sobre el mismo topic. Recibe **todos** los mensajes, igual que `estadisticas`, y lleva su propia marca. Al arrancar por primera vez lee el historial completo desde el offset 0.
 - Agregar un grupo no hace más rápido a `estadisticas`. Escalar un grupo es sumarle consumidores, hasta el número de particiones.
+
+## Consumer lag
+
+- `lag = log-end-offset − current-offset`. El `log-end-offset` es el próximo offset libre de la partición; el `current-offset` es la marca que se confirma en [`ScoreListener.java` L40](src/main/java/cl/athenet/statistics/consumer/ScoreListener.java#L40).
+- Si este servicio se detiene, la marca no avanza y el lag crece con cada clic. Al volver, lee lo pendiente desde su marca y el lag vuelve a 0. `earliest` no interviene, porque el grupo ya tiene marca.
+- `estadisticas` y `auditoria` viven en este mismo servicio, así que los dos grupos acumulan lag a la vez.
