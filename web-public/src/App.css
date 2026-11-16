@@ -1,0 +1,40 @@
+main {
+  max-width: 640px;
+  margin: 60px auto;
+  text-align: center;
+}
+
+.estado {
+  color: #b00;
+  font-size: 14px;
+}
+
+.estado.conectado {
+  color: #080;
+}
+
+.etiqueta {
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.marcador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.equipo h2 {
+  margin: 0 0 8px;
+}
+
+.puntos {
+  font-size: 96px;
+  font-weight: bold;
+}
+
+.separador {
+  font-size: 64px;
+}

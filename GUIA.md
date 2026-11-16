@@ -113,3 +113,26 @@ También se ve en Kafka UI → Consumers → `estadisticas`.
 **En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md) (consumer group, marca, `earliest` y deserialización).
 
 **Athenet:** `ms-competitions` no sabe que existe `ms-statistics`. Kafka los desacopla: el productor publica y cada consumidor lee a su ritmo.
+
+## Fase 5: tiempo real con STOMP y web-public
+
+```bash
+docker compose up -d --build
+```
+
+**Probar**
+
+1. Abre http://localhost:5173 (marcador público) y http://localhost:5000 (delegado) lado a lado.
+2. En el panel del delegado, inicia un partido. El marcador público lo muestra sin recargar.
+3. Haz clics en +/-. Cada uno se refleja en el marcador público.
+4. Recarga el marcador público: vuelve con el marcador actual.
+5. Finaliza el partido. El marcador público muestra "Finalizado".
+
+**Qué mirar**
+
+- El recorrido de un clic: POST a `ms-competitions`, mensaje en Kafka (`[PUBLICA]`), lectura en `ms-statistics` (`[LEE]`), documento en MongoDB y envío por STOMP al navegador.
+- En el navegador, DevTools → Network → WS → `ws`: los frames STOMP que llegan con cada clic.
+
+**En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md#tiempo-real-con-stomp) y [web-public/GUIA.md](web-public/GUIA.md).
+
+**Athenet:** el delegado ya no es el único que ve el marcador mientras se juega. `web-public` no sabe que existe Kafka, y `ms-competitions` no sabe que existe `web-public`.

@@ -15,6 +15,7 @@ El objetivo es mostrar el marcador cambiando en tiempo real en una web mediante 
 | `postgres` | BD de `ms-competitions` | AWS RDS (en la maqueta, equivale a una EC2 simple) |
 | [`ms-statistics`](ms-statistics) | Nuevo: consumidor del marcador | AWS EC2 |
 | `mongo`, `mongo-express` | Nuevo: BD de `ms-statistics` | AWS EC2 |
+| [`web-public`](web-public) | Nueva: marcador público | GitHub Pages |
 
 ## Levantar
 
@@ -28,5 +29,6 @@ docker compose up -d --build
 | ms-competitions | http://localhost:8081/encuentros |
 | web-org | http://localhost:5000 |
 | mongo-express | http://localhost:8083 |
+| web-public | http://localhost:5173 |
 
 Guía paso a paso en [GUIA.md](GUIA.md).

@@ -98,9 +98,18 @@ services:
         condition: service_healthy
       mongo:
         condition: service_started
+    ports:
+      - "8082:8082"
     environment:
       SPRING_MONGODB_URI: mongodb://mongo:27017/statistics
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+
+  web-public:
+    build: ./web-public
+    depends_on:
+      - ms-statistics
+    ports:
+      - "5173:80"
 
 volumes:
   postgres-datos:
