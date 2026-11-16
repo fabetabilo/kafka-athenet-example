@@ -103,6 +103,8 @@ services:
     environment:
       SPRING_MONGODB_URI: mongodb://mongo:27017/statistics
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # probar con 1, 3 y 4
+      ESTADISTICAS_HILOS: 1
 
   web-public:
     build: ./web-public

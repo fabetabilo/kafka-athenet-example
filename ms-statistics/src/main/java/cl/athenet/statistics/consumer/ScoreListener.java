@@ -24,7 +24,8 @@ public class ScoreListener {
         this.mensajeria = mensajeria;
     }
 
-    @KafkaListener(topics = "marcador", groupId = "estadisticas")
+    // hilos = consumidores del grupo dentro de esta instancia (ESTADISTICAS_HILOS en docker-compose)
+    @KafkaListener(topics = "marcador", groupId = "estadisticas", concurrency = "${estadisticas.hilos:1}")
     public void escuchar(ConsumerRecord<String, ScoreEvent> registro) {
         ScoreEvent evento = registro.value();
         log.info("[LEE] grupo=estadisticas particion={} offset={} clave={} tipo={} marcador={}-{}",

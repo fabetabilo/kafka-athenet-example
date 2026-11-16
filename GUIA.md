@@ -136,3 +136,39 @@ docker compose up -d --build
 **En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md#tiempo-real-con-stomp) y [web-public/GUIA.md](web-public/GUIA.md).
 
 **Athenet:** el delegado ya no es el único que ve el marcador mientras se juega. `web-public` no sabe que existe Kafka, y `ms-competitions` no sabe que existe `web-public`.
+
+## Fase 6: escalamiento
+
+```bash
+docker compose up -d --build
+docker compose logs -f ms-statistics
+```
+
+**Probar**
+
+1. Con `ESTADISTICAS_HILOS: 1` en `docker-compose.yml`, revisa los miembros del grupo:
+
+```bash
+docker compose exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group estadisticas --members
+```
+
+2. Cambia a `ESTADISTICAS_HILOS: 3`, aplica con `docker compose up -d ms-statistics` y repite el comando.
+3. Cambia a `4`, aplica y repite.
+4. Con 3 hilos, juega un partido y luego otro.
+5. Revisa el segundo grupo: `--describe --group auditoria`.
+
+**Qué mirar**
+
+| Hilos | Miembros | Particiones por miembro |
+|---|---|---|
+| 1 | 1 | 3 |
+| 3 | 3 | 1 cada uno |
+| 4 | 4 | uno queda con 0 |
+
+- En el log, el nombre del hilo aparece entre corchetes (`...-0-C-1`, `...-1-C-1`). Todos los `[LEE]` de un partido salen del mismo hilo. Otro partido puede salir de otro hilo, si cayó en otra partición.
+- Cada clic deja una línea `[LEE]` y una `[AUDITORIA]`: los dos grupos leen el mismo mensaje.
+- En Kafka UI → Consumers aparecen `estadisticas` y `auditoria`, cada uno con sus propios offsets.
+
+**En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md#escalamiento).
+
+**Athenet:** con varias instancias de `ms-statistics` (por ejemplo, varias EC2), cada una recibiría solo algunas particiones. Un navegador conectado por STOMP a una instancia no vería los partidos leídos por otra. Para escalar horizontalmente habría que separar la lectura de Kafka del envío por WebSocket.
