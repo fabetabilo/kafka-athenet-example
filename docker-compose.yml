@@ -22,6 +22,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       # los topics se crean desde el codigo, no al publicar
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # revisar la retencion cada 30 s (por defecto 5 min) para verla en la fase 8
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 30000
     healthcheck:
       test: kafka-topics --bootstrap-server localhost:9092 --list
       interval: 10s

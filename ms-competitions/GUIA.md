@@ -6,8 +6,14 @@ Líneas clave del servicio y qué concepto de Kafka muestra cada una.
 
 [`KafkaConfig.java`](src/main/java/cl/athenet/competitions/config/KafkaConfig.java)
 
-- [L11](src/main/java/cl/athenet/competitions/config/KafkaConfig.java#L11): el topic se llama `marcador`.
-- [L15](src/main/java/cl/athenet/competitions/config/KafkaConfig.java#L15): 3 particiones y 1 réplica. Spring crea el topic al arrancar, porque es un bean `NewTopic`. Tiene 1 réplica porque hay un solo broker; en la fase 9 sube a 3.
+- [L14](src/main/java/cl/athenet/competitions/config/KafkaConfig.java#L14): el topic se llama `marcador`.
+- [L18](src/main/java/cl/athenet/competitions/config/KafkaConfig.java#L18): 3 particiones y 1 réplica. Spring crea el topic al arrancar, porque es un bean `NewTopic`. Tiene 1 réplica porque hay un solo broker; en la fase 9 sube a 3.
+
+## Retención
+
+- [L20](src/main/java/cl/athenet/competitions/config/KafkaConfig.java#L20): la política es `delete`. Kafka borra mensajes por antigüedad, nunca porque alguien los leyó.
+- [L22](src/main/java/cl/athenet/competitions/config/KafkaConfig.java#L22): los mensajes viven 7 días. Mientras sigan en el topic, cualquier grupo puede releerlos.
+- La alternativa es `compact`: de cada clave deja solo el último valor. Para `marcador` dejaría solo el marcador final de cada `idEncuentro`, que es justo lo que guarda MongoDB, pero se perdería la secuencia de clics.
 
 ## Productor
 
@@ -34,7 +40,7 @@ Líneas clave del servicio y qué concepto de Kafka muestra cada una.
 
 [`application.yml`](src/main/resources/application.yml)
 
-- [L13](src/main/resources/application.yml#L13): broker `localhost:9092` cuando corre fuera de Docker. En Docker se reemplaza por `kafka:29092` ([`docker-compose.yml` L68](../docker-compose.yml#L68)).
+- [L13](src/main/resources/application.yml#L13): broker `localhost:9092` cuando corre fuera de Docker. En Docker se reemplaza por `kafka:29092` ([`docker-compose.yml` L70](../docker-compose.yml#L70)).
 - [L15](src/main/resources/application.yml#L15): la clave se serializa como texto.
 - [L16](src/main/resources/application.yml#L16): el valor se serializa como JSON con `JacksonJsonSerializer`, que es el nombre en Spring Boot 4.
 - [L19](src/main/resources/application.yml#L19): sin headers de tipo. El JSON no lleva el nombre de la clase Java, así que otro microservicio puede leerlo con su propia clase.

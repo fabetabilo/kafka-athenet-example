@@ -207,3 +207,66 @@ docker compose exec kafka kafka-consumer-groups --bootstrap-server localhost:909
 **En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md#consumer-lag) y [web-public/GUIA.md](web-public/GUIA.md).
 
 **Athenet:** si `ms-statistics` se cae en pleno partido, el delegado puede seguir anotando puntos y no se pierde ninguno. El marcador público se atrasa, y al volver el servicio se pone al día solo. En producción, el lag es la métrica que avisa de ese atraso.
+
+## Fase 8: retención
+
+El topic cambia de configuración, así que hay que recrearlo:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+Juega un partido completo antes de seguir.
+
+**Probar 1: leer no borra**
+
+```bash
+docker compose exec kafka kafka-configs --bootstrap-server localhost:9092 --describe --entity-type topics --entity-name marcador
+```
+
+Muestra `cleanup.policy=delete` y `retention.ms=604800000` (7 días). En Kafka UI, los mensajes del partido siguen en el topic aunque `estadisticas` y `auditoria` ya los leyeron.
+
+**Probar 2: reconstruir MongoDB desde Kafka**
+
+1. Detén el consumidor: `docker compose stop ms-statistics`.
+2. Borra la colección:
+
+```bash
+docker compose exec mongo mongosh statistics --eval "db.marcadores.drop()"
+```
+
+3. Mueve la marca del grupo al principio:
+
+```bash
+docker compose exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --group estadisticas --topic marcador --reset-offsets --to-earliest --execute
+```
+
+4. Levántalo: `docker compose start ms-statistics`.
+
+El log muestra todos los `[LEE]` desde el offset 0, y en mongo-express vuelve a aparecer el documento con el marcador final. MongoDB se reconstruyó solo con lo que había en Kafka.
+
+**Probar 3: ver la retención borrar**
+
+1. Baja la retención a 1 minuto y cierra un segmento cada 10 segundos:
+
+```bash
+docker compose exec kafka kafka-configs --bootstrap-server localhost:9092 --alter --entity-type topics --entity-name marcador --add-config retention.ms=60000,segment.ms=10000
+```
+
+2. Espera 15 segundos, inicia otro partido y haz un clic, para que se abra un segmento nuevo.
+3. Espera unos 2 minutos y mira Kafka UI → `marcador` → Messages.
+4. Restaura la configuración:
+
+```bash
+docker compose exec kafka kafka-configs --bootstrap-server localhost:9092 --alter --entity-type topics --entity-name marcador --delete-config retention.ms,segment.ms
+```
+
+**Qué mirar**
+
+- Los mensajes viejos desaparecen aunque nadie los haya pedido borrar. Los offsets no vuelven a 0: la partición ahora empieza en un offset mayor.
+- Si repites la reconstrucción (Probar 2), solo se recupera lo que sobrevivió. La retención define hasta dónde se puede releer.
+
+**En el código:** [ms-competitions/GUIA.md](ms-competitions/GUIA.md#retención).
+
+**Athenet:** con 7 días de retención, si MongoDB se pierde, el estado de los partidos de la última semana se puede reconstruir desde Kafka sin tocar `ms-competitions`.

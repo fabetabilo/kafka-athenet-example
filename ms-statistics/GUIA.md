@@ -41,7 +41,7 @@ Por esto, en la fase 6 se escala con hilos dentro de una instancia y no con vari
 
 ## Escalamiento
 
-- [`ScoreListener.java` L28](src/main/java/cl/athenet/statistics/consumer/ScoreListener.java#L28): `concurrency` define cuántos consumidores del grupo `estadisticas` corren en esta instancia. Se ajusta con `ESTADISTICAS_HILOS` en [`docker-compose.yml` L107](../docker-compose.yml#L107).
+- [`ScoreListener.java` L28](src/main/java/cl/athenet/statistics/consumer/ScoreListener.java#L28): `concurrency` define cuántos consumidores del grupo `estadisticas` corren en esta instancia. Se ajusta con `ESTADISTICAS_HILOS` en [`docker-compose.yml` L109](../docker-compose.yml#L109).
 - Kafka reparte las particiones entre los consumidores del grupo, y cada partición la lee uno solo:
   - 1 hilo: lee las 3 particiones.
   - 3 hilos: una partición cada uno. Es el máximo útil, porque el topic tiene 3 particiones.
