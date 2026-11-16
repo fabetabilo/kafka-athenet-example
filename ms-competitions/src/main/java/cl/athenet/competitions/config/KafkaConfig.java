@@ -15,7 +15,8 @@ public class KafkaConfig {
 
     @Bean
     NewTopic marcador() {
-        return TopicBuilder.name(TOPIC).partitions(3).replicas(1)
+        // 3 copias de cada particion: un lider y dos seguidores en brokers distintos
+        return TopicBuilder.name(TOPIC).partitions(3).replicas(3)
                 // borrar por tiempo, no por lectura
                 .config(TopicConfig.CLEANUP_POLICY_CONFIG, TopicConfig.CLEANUP_POLICY_DELETE)
                 // 7 dias: los mensajes viven aunque ya se hayan leido

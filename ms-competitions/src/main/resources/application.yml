@@ -12,6 +12,8 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     producer:
+      # el broker confirma solo cuando las replicas al dia tienen el mensaje
+      acks: all
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       properties:

@@ -9,7 +9,7 @@ El objetivo es mostrar el marcador cambiando en tiempo real en una web mediante 
 
 | Servicio | Representa en Athenet | Infra real |
 |---|---|---|
-| `kafka`, `zookeeper`, `kafka-ui` | Nuevo: broker de eventos | AWS EC2 (autogestionado) |
+| `kafka`, `kafka-2`, `kafka-3`, `zookeeper`, `kafka-ui` | Nuevo: cluster de 3 brokers | AWS EC2 (autogestionado, una instancia por broker) |
 | [`ms-competitions`](ms-competitions) | `ms-competitions` | AWS EC2 |
 | [`web-org`](web-org) | Web Angular `web-org` (panel del delegado) | GitHub Pages |
 | `postgres` | BD de `ms-competitions` | AWS RDS (en la maqueta, equivale a una EC2 simple) |
@@ -30,5 +30,13 @@ docker compose up -d --build
 | web-org | http://localhost:5000 |
 | mongo-express | http://localhost:8083 |
 | web-public | http://localhost:5173 |
+
+## Borrar
+
+Para probar el flujo de nuevo
+
+```bash
+docker compose down -v
+```
 
 Guía paso a paso en [GUIA.md](GUIA.md).

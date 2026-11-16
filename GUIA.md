@@ -270,3 +270,44 @@ docker compose exec kafka kafka-configs --bootstrap-server localhost:9092 --alte
 **En el código:** [ms-competitions/GUIA.md](ms-competitions/GUIA.md#retención).
 
 **Athenet:** con 7 días de retención, si MongoDB se pierde, el estado de los partidos de la última semana se puede reconstruir desde Kafka sin tocar `ms-competitions`.
+
+## Fase 9: replicación
+
+Ahora hay 3 brokers y el topic se crea con 3 réplicas, así que hay que partir de cero:
+
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+**Probar**
+
+1. Inicia un partido y haz un clic. Anota su partición en el log de `ms-competitions` (`[PUBLICA] ... particion=N`).
+2. Mira quién lidera cada partición:
+
+```bash
+docker compose exec kafka kafka-topics --bootstrap-server localhost:9092 --describe --topic marcador
+```
+
+3. Detén el broker líder de esa partición. Por ejemplo, si es el 2: `docker compose stop kafka-2`. Los brokers 1, 2 y 3 son los servicios `kafka`, `kafka-2` y `kafka-3`.
+4. Repite el paso 2. Si detuviste `kafka`, ejecuta el comando en `kafka-2` con `--bootstrap-server localhost:9093`.
+5. Haz clics. El marcador público sigue funcionando.
+6. Detén un segundo broker y haz un clic.
+7. Levanta los dos brokers con `docker compose start` y repite el paso 2.
+
+**Qué mirar**
+
+| Brokers arriba | Líder | ISR | Clics |
+|---|---|---|---|
+| 3 | uno por partición, repartidos | 3 réplicas | Funcionan |
+| 2 | otro broker toma el liderazgo | 2 réplicas | Funcionan |
+| 1 | el que queda | 1 réplica | Fallan: `[ERROR]` en el log, por `min.insync.replicas=2` |
+| 3 de nuevo | se mantiene el nuevo | vuelve a 3 | Funcionan |
+
+- Con un broker caído no se pierde ningún mensaje: las otras réplicas ya los tenían.
+- Con solo uno arriba, Kafka prefiere rechazar antes que guardar una sola copia. El productor reintenta hasta 2 minutos (`delivery.timeout.ms`) antes de mostrar el `[ERROR]`. Si levantas un broker antes de ese plazo, el mensaje se publica igual.
+- En Kafka UI → Brokers se ven los 3 brokers, y en Topics → `marcador` el líder y las réplicas de cada partición.
+
+**En el código:** [ms-competitions/GUIA.md](ms-competitions/GUIA.md#replicación).
+
+**Athenet:** con Kafka autogestionado, serían 3 instancias EC2, idealmente en zonas de disponibilidad distintas. Si una cae, los partidos siguen. Con una sola EC2 (hasta la fase 8), caída del broker es caída del marcador en vivo.

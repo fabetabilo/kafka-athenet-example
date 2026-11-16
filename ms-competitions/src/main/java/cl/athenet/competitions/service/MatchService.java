@@ -59,11 +59,17 @@ public class MatchService {
                 encuentro.getEquipoVisita(), puntosLocal, puntosVisita, tipo);
         // la clave elige la particion: un encuentro siempre cae en la misma
         String clave = String.valueOf(encuentro.getId());
-        productor.send(KafkaConfig.TOPIC, clave, evento).thenAccept(resultado ->
-                log.info("[PUBLICA] topic={} clave={} particion={} offset={} tipo={} marcador={}-{}",
-                        KafkaConfig.TOPIC, clave,
-                        resultado.getRecordMetadata().partition(),
-                        resultado.getRecordMetadata().offset(),
-                        tipo, puntosLocal, puntosVisita));
+        productor.send(KafkaConfig.TOPIC, clave, evento).whenComplete((resultado, error) -> {
+            if (error != null) {
+                // por ejemplo, menos replicas al dia que min.insync.replicas
+                log.error("[ERROR] no se pudo publicar clave={} tipo={}: {}", clave, tipo, error.getMessage());
+                return;
+            }
+            log.info("[PUBLICA] topic={} clave={} particion={} offset={} tipo={} marcador={}-{}",
+                    KafkaConfig.TOPIC, clave,
+                    resultado.getRecordMetadata().partition(),
+                    resultado.getRecordMetadata().offset(),
+                    tipo, puntosLocal, puntosVisita);
+        });
     }
 }

@@ -19,13 +19,60 @@ services:
       KAFKA_ADVERTISED_LISTENERS: INTERNO://kafka:29092,EXTERNO://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNO:PLAINTEXT,EXTERNO:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNO
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
       # los topics se crean desde el codigo, no al publicar
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       # revisar la retencion cada 30 s (por defecto 5 min) para verla en la fase 8
       KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 30000
+      # con acks=all, una escritura necesita al menos 2 replicas al dia
+      KAFKA_MIN_INSYNC_REPLICAS: 2
     healthcheck:
       test: kafka-topics --bootstrap-server localhost:9092 --list
+      interval: 10s
+      retries: 10
+
+  # brokers 2 y 3: misma configuracion, otro id y otro puerto externo
+  kafka-2:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNO://0.0.0.0:29092,EXTERNO://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNO://kafka-2:29092,EXTERNO://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNO:PLAINTEXT,EXTERNO:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNO
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 30000
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    healthcheck:
+      test: kafka-topics --bootstrap-server localhost:9093 --list
+      interval: 10s
+      retries: 10
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNO://0.0.0.0:29092,EXTERNO://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNO://kafka-3:29092,EXTERNO://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNO:PLAINTEXT,EXTERNO:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNO
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 30000
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    healthcheck:
+      test: kafka-topics --bootstrap-server localhost:9094 --list
       interval: 10s
       retries: 10
 
@@ -33,11 +80,13 @@ services:
     image: provectuslabs/kafka-ui:latest
     depends_on:
       - kafka
+      - kafka-2
+      - kafka-3
     ports:
       - "8080:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: athenet
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092,kafka-2:29092,kafka-3:29092
 
   postgres:
     image: postgres:17
@@ -61,13 +110,18 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
       postgres:
         condition: service_healthy
     ports:
       - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/competitions
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # si un broker cae, el cliente arranca con cualquiera de los otros
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092,kafka-2:29092,kafka-3:29092
 
   web-org:
     build: ./web-org
@@ -98,13 +152,18 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      kafka-2:
+        condition: service_healthy
+      kafka-3:
+        condition: service_healthy
       mongo:
         condition: service_started
     ports:
       - "8082:8082"
     environment:
       SPRING_MONGODB_URI: mongodb://mongo:27017/statistics
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # si un broker cae, el cliente arranca con cualquiera de los otros
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092,kafka-2:29092,kafka-3:29092
       # probar con 1, 3 y 4
       ESTADISTICAS_HILOS: 1
 
