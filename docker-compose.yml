@@ -22,6 +22,10 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       # los topics se crean desde el codigo, no al publicar
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: kafka-topics --bootstrap-server localhost:9092 --list
+      interval: 10s
+      retries: 10
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -32,3 +36,36 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: athenet
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+  postgres:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: competitions
+      POSTGRES_USER: athenet
+      POSTGRES_PASSWORD: athenet
+    volumes:
+      # crea la tabla y los partidos programados solo con la base vacia
+      - ./ms-competitions/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-datos:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U athenet -d competitions
+      interval: 5s
+      retries: 10
+
+  ms-competitions:
+    build: ./ms-competitions
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/competitions
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+
+volumes:
+  postgres-datos:

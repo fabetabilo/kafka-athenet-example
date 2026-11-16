@@ -6,6 +6,8 @@ Plan para construir la maqueta paso a paso. Cada fase es un commit y agrega su s
 
 - Archivos, carpetas y clases en inglés. Variables, campos JSON, endpoints y topics en español.
 - Documentación en español correcto. Comentarios en código y mensajes de commit sin tildes ni símbolos propios del español.
+- `GUIA.md` raíz ligero: levantar, probar y qué mirar. Cada componente tiene su `GUIA.md`, referenciado desde su README, con el detalle línea por línea.
+- Las referencias a líneas son links clickeables (`archivo#L12`).
 - Implementación mínima, sin validaciones innecesarias.
 - Un solo encuentro a la vez.
 - Cada fase deja el ecosistema levantable y con su prueba. Para volver a una fase: `git checkout fase-N` y `docker compose down -v && docker compose up --build`.
@@ -27,7 +29,7 @@ Todo se levanta con un solo `docker-compose.yml`.
 ## Flujo
 
 1. El delegado elige un partido `PROGRAMADO` en `web-org` y lo inicia. `ms-competitions` lo pasa a `EN_CURSO` y publica `INICIADO`.
-2. Cada clic en +/- hace un POST a `ms-competitions`, que publica `PUNTO`. PostgreSQL no se toca.
+2. Cada clic en +/- hace un POST a `ms-competitions`, que publica `PUNTO`. No se escribe en PostgreSQL.
 3. Al finalizar, `ms-competitions` guarda el resultado, deja el partido en `FINALIZADO` y publica `FINALIZADO`.
 4. `ms-statistics` consume `marcador`, guarda el estado en MongoDB y lo envía por STOMP.
 5. `web-public` muestra el marcador en vivo.
