@@ -29,7 +29,7 @@ Todo se levanta con un solo `docker-compose.yml`.
 ## Flujo
 
 1. El delegado elige un partido `PROGRAMADO` en `web-org` y lo inicia. `ms-competitions` lo pasa a `EN_CURSO` y publica `INICIADO`.
-2. Cada clic en +/- hace un POST a `ms-competitions`, que publica `PUNTO`. No se escribe en PostgreSQL.
+2. Cada clic en +/- hace un POST a `ms-competitions` (en Athenet, a través del BFF), que publica `PUNTO`. No se escribe en PostgreSQL.
 3. Al finalizar, `ms-competitions` guarda el resultado, deja el partido en `FINALIZADO` y publica `FINALIZADO`.
 4. `ms-statistics` consume `marcador`, guarda el estado en MongoDB y lo envía por STOMP.
 5. `web-public` muestra el marcador en vivo.
@@ -81,7 +81,7 @@ Todo se levanta con un solo `docker-compose.yml`.
 
 ### Fase 3: web-org
 
-- **Construye:** página Flask para elegir un partido programado, iniciarlo, sumar o restar con +/- y finalizarlo. El JS llama directo a `ms-competitions`.
+- **Construye:** página Flask para elegir un partido programado, iniciarlo, sumar o restar con +/- y finalizarlo. En Athenet pasa por un BFF; la maqueta lo omite.
 - **Conceptos:** productor detrás de un flujo real; un clic genera un mensaje.
 - **Se observa:** cada clic agrega un mensaje en Kafka UI. Un partido nuevo puede caer en otra partición.
 - **Commit:** `feat(web-org): panel del delegado con marcador`

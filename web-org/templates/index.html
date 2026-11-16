@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del delegado</title>
+    <style>
+        body { font-family: sans-serif; max-width: 480px; margin: 40px auto; text-align: center; }
+        .equipos { display: flex; justify-content: space-around; margin: 24px 0; }
+        .puntos { font-size: 48px; margin: 8px 0; }
+        button { font-size: 18px; padding: 6px 14px; margin: 2px; }
+        .oculto { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Panel del delegado</h1>
+
+    <div id="vistaProgramados">
+        <select id="selectorEncuentro"></select>
+        <button onclick="iniciar()">Iniciar</button>
+    </div>
+
+    <div id="vistaMarcador" class="oculto">
+        <div class="equipos">
+            <div>
+                <h2 id="nombreLocal"></h2>
+                <div class="puntos" id="puntosLocal">0</div>
+                <button onclick="cambiar('local', -1)">-</button>
+                <button onclick="cambiar('local', 1)">+</button>
+            </div>
+            <div>
+                <h2 id="nombreVisita"></h2>
+                <div class="puntos" id="puntosVisita">0</div>
+                <button onclick="cambiar('visita', -1)">-</button>
+                <button onclick="cambiar('visita', 1)">+</button>
+            </div>
+        </div>
+        <button onclick="finalizar()">Finalizar partido</button>
+    </div>
+
+    <script>
+        const urlCompetitions = "{{ url_competitions }}";
+        let encuentro = null;
+        let puntosLocal = 0;
+        let puntosVisita = 0;
+
+        async function cargarProgramados() {
+            const respuesta = await fetch(urlCompetitions + "/encuentros");
+            const encuentros = await respuesta.json();
+            const selector = document.getElementById("selectorEncuentro");
+            selector.innerHTML = encuentros
+                .filter(e => e.estado === "PROGRAMADO")
+                .map(e => `<option value="${e.id}">${e.equipoLocal} vs ${e.equipoVisita}</option>`)
+                .join("");
+        }
+
+        async function iniciar() {
+            const idEncuentro = document.getElementById("selectorEncuentro").value;
+            const respuesta = await fetch(`${urlCompetitions}/encuentros/${idEncuentro}/iniciar`, { method: "POST" });
+            encuentro = await respuesta.json();
+            puntosLocal = 0;
+            puntosVisita = 0;
+            document.getElementById("nombreLocal").textContent = encuentro.equipoLocal;
+            document.getElementById("nombreVisita").textContent = encuentro.equipoVisita;
+            mostrarMarcador(true);
+            pintar();
+        }
+
+        // cada click envia el marcador completo: antes esto no salia del navegador
+        async function cambiar(equipo, valor) {
+            if (equipo === "local") puntosLocal = Math.max(0, puntosLocal + valor);
+            else puntosVisita = Math.max(0, puntosVisita + valor);
+            pintar();
+            await enviar("marcador");
+        }
+
+        async function finalizar() {
+            await enviar("finalizar");
+            mostrarMarcador(false);
+            cargarProgramados();
+        }
+
+        function enviar(accion) {
+            return fetch(`${urlCompetitions}/encuentros/${encuentro.id}/${accion}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ puntosLocal, puntosVisita })
+            });
+        }
+
+        function pintar() {
+            document.getElementById("puntosLocal").textContent = puntosLocal;
+            document.getElementById("puntosVisita").textContent = puntosVisita;
+        }
+
+        function mostrarMarcador(enCurso) {
+            document.getElementById("vistaProgramados").classList.toggle("oculto", enCurso);
+            document.getElementById("vistaMarcador").classList.toggle("oculto", !enCurso);
+        }
+
+        cargarProgramados();
+    </script>
+</body>
+</html>

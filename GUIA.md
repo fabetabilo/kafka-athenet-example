@@ -58,3 +58,27 @@ docker compose exec postgres psql -U athenet -d competitions -c "select * from e
 **Athenet:** antes había un solo POST al finalizar. Ahora cada clic en +/- también hace un POST, que publica en `marcador` sin escribir en la BD.
 
 **Reiniciar desde cero:** `docker compose down -v` borra el topic y la base. Al volver a levantar, el script de los partidos programados corre de nuevo.
+
+## Fase 3: web-org
+
+```bash
+docker compose up -d --build
+docker compose logs -f ms-competitions
+```
+
+**Probar**
+
+1. Abre http://localhost:5000, elige un partido programado y presiona **Iniciar**.
+2. Presiona + y - varias veces.
+3. Presiona **Finalizar partido**. Vuelve la lista sin ese partido.
+4. Inicia otro partido.
+
+**Qué mirar**
+
+- Cada clic genera una línea `[PUBLICA]` en el log y un mensaje nuevo en Kafka UI → `marcador`, con el offset siguiente dentro de la misma partición.
+- El segundo partido puede caer en otra partición, porque tiene otra clave.
+- En la pestaña Network del navegador, cada clic es un `POST /encuentros/{id}/marcador`.
+
+**En el código:** [web-org/GUIA.md](web-org/GUIA.md).
+
+**Athenet:** la pantalla del delegado es la misma. La diferencia es que cada clic ahora sale del navegador.

@@ -11,6 +11,7 @@ El objetivo es mostrar el marcador cambiando en tiempo real en una web mediante 
 |---|---|---|
 | `kafka`, `zookeeper`, `kafka-ui` | Nuevo: broker de eventos | AWS EC2 (autogestionado) |
 | [`ms-competitions`](ms-competitions) | `ms-competitions` | AWS EC2 |
+| [`web-org`](web-org) | Web Angular `web-org` (panel del delegado) | GitHub Pages |
 | `postgres` | BD de `ms-competitions` | AWS RDS (en la maqueta, equivale a una EC2 simple) |
 
 ## Levantar
@@ -23,5 +24,6 @@ docker compose up -d --build
 |---|---|
 | Kafka UI | http://localhost:8080 |
 | ms-competitions | http://localhost:8081/encuentros |
+| web-org | http://localhost:5000 |
 
 Guía paso a paso en [GUIA.md](GUIA.md).

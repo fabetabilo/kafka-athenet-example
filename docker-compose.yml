@@ -67,5 +67,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/competitions
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
 
+  web-org:
+    build: ./web-org
+    depends_on:
+      - ms-competitions
+    ports:
+      - "5000:5000"
+
 volumes:
   postgres-datos:

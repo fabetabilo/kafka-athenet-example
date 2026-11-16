@@ -3,6 +3,7 @@ package cl.athenet.competitions.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,8 @@ import cl.athenet.competitions.model.Match;
 import cl.athenet.competitions.model.ScoreRequest;
 import cl.athenet.competitions.service.MatchService;
 
+// permite que web-org llame desde el navegador (en Athenet llama el BFF)
+@CrossOrigin
 @RestController
 @RequestMapping("/encuentros")
 public class MatchController {

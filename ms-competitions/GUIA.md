@@ -23,7 +23,8 @@ Líneas clave del servicio y qué concepto de Kafka muestra cada una.
 - [L42](src/main/java/cl/athenet/competitions/service/MatchService.java#L42): cada clic del delegado publica `PUNTO` y no escribe en la BD. Antes no existía: solo había un POST al finalizar.
 - [L35](src/main/java/cl/athenet/competitions/service/MatchService.java#L35): iniciar pasa el partido de `PROGRAMADO` a `EN_CURSO`.
 - [L52](src/main/java/cl/athenet/competitions/service/MatchService.java#L52): al finalizar se guarda el resultado, como antes, y además se publica `FINALIZADO`.
-- [`MatchController.java` L37](src/main/java/cl/athenet/competitions/controller/MatchController.java#L37): el endpoint de cada clic. Responde `202 Accepted` ([L40](src/main/java/cl/athenet/competitions/controller/MatchController.java#L40)).
+- [`MatchController.java` L40](src/main/java/cl/athenet/competitions/controller/MatchController.java#L40): el endpoint de cada clic. Responde `202 Accepted` ([L43](src/main/java/cl/athenet/competitions/controller/MatchController.java#L43)).
+- [`MatchController.java` L19](src/main/java/cl/athenet/competitions/controller/MatchController.java#L19): `@CrossOrigin` deja que el navegador llame a este servicio. En Athenet no hace falta, porque quien llama a `ms-competitions` es el BFF.
 
 ## Evento
 
