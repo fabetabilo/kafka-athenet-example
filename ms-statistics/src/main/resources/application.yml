@@ -1,0 +1,14 @@
+spring:
+  mongodb:
+    uri: mongodb://localhost:27017/statistics
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      # sin marca previa, el grupo parte desde el primer mensaje
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JacksonJsonDeserializer
+      properties:
+        # el JSON no trae la clase: se lee con la clase propia de este servicio
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: cl.athenet.statistics.event.ScoreEvent

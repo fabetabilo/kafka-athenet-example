@@ -82,3 +82,34 @@ docker compose logs -f ms-competitions
 **En el código:** [web-org/GUIA.md](web-org/GUIA.md).
 
 **Athenet:** la pantalla del delegado es la misma. La diferencia es que cada clic ahora sale del navegador.
+
+## Fase 4: ms-statistics y MongoDB
+
+```bash
+docker compose up -d --build
+docker compose logs -f ms-statistics
+```
+
+**Probar**
+
+1. En http://localhost:5000, inicia un partido y haz algunos clics.
+2. Detén el consumidor: `docker compose stop ms-statistics`.
+3. Haz 3 clics más.
+4. Levántalo de nuevo: `docker compose start ms-statistics`.
+
+**Qué mirar**
+
+- Apenas arranca, `ms-statistics` lee todos los mensajes que ya existían en el topic, incluidos los de fases anteriores. Cada uno deja una línea `[LEE]` con su partición y su offset.
+- Al volver a levantarlo (paso 4), lee solo los 3 clics que se hicieron mientras estaba detenido. No repite los anteriores.
+- En mongo-express (http://localhost:8083) → `statistics` → `marcadores`: un documento por encuentro con el último marcador.
+- La marca del grupo. `CURRENT-OFFSET` es el próximo mensaje que le toca leer:
+
+```bash
+docker compose exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group estadisticas
+```
+
+También se ve en Kafka UI → Consumers → `estadisticas`.
+
+**En el código:** [ms-statistics/GUIA.md](ms-statistics/GUIA.md) (consumer group, marca, `earliest` y deserialización).
+
+**Athenet:** `ms-competitions` no sabe que existe `ms-statistics`. Kafka los desacopla: el productor publica y cada consumidor lee a su ritmo.

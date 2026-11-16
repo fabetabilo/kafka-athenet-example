@@ -13,6 +13,8 @@ El objetivo es mostrar el marcador cambiando en tiempo real en una web mediante 
 | [`ms-competitions`](ms-competitions) | `ms-competitions` | AWS EC2 |
 | [`web-org`](web-org) | Web Angular `web-org` (panel del delegado) | GitHub Pages |
 | `postgres` | BD de `ms-competitions` | AWS RDS (en la maqueta, equivale a una EC2 simple) |
+| [`ms-statistics`](ms-statistics) | Nuevo: consumidor del marcador | AWS EC2 |
+| `mongo`, `mongo-express` | Nuevo: BD de `ms-statistics` | AWS EC2 |
 
 ## Levantar
 
@@ -25,5 +27,6 @@ docker compose up -d --build
 | Kafka UI | http://localhost:8080 |
 | ms-competitions | http://localhost:8081/encuentros |
 | web-org | http://localhost:5000 |
+| mongo-express | http://localhost:8083 |
 
 Guía paso a paso en [GUIA.md](GUIA.md).
